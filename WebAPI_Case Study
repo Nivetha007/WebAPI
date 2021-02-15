@@ -1,0 +1,210 @@
+Student.cs 
+
+namespace LearnTodayWebApi1.Models
+{
+    using System;
+    using System.Collections.Generic;
+    
+    public partial class Student
+    {
+        public int EnrollmentId { get; set; }
+        public Nullable<int> StudentId { get; set; }
+        public Nullable<int> CourseId { get; set; }
+    }
+}
+
+Trainer.cs
+
+namespace LearnTodayWebApi1.Models
+{
+    using System;
+    using System.Collections.Generic;
+    
+    public partial class Trainer
+    {
+        public int TrainerId { get; set; }
+        public string Password { get; set; }
+    }
+}
+
+Course.cs
+
+namespace LearnTodayWebApi1.Models
+{
+    using System;
+    using System.Collections.Generic;
+    
+    public partial class Course
+    {
+        public int CourseId { get; set; }
+        public string Title { get; set; }
+        public Nullable<double> Fees { get; set; }
+        public string Description { get; set; }
+        public string Trainer { get; set; }
+        public Nullable<System.DateTime> Start_Date { get; set; }
+    }
+}
+
+AdminController.cs 
+
+using LearnTodayWebApi1.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+
+namespace LearnTodayWebApi1.Controllers
+{
+    public class AdminController : ApiController
+    {
+        LearnTodayWebAPIDbEntities db = new LearnTodayWebAPIDbEntities();
+        [HttpGet]
+        public IEnumerable<Course> GetAllCourses()
+        {
+            return db.Courses.ToList();
+
+        }
+        public HttpResponseMessage GetCourseById(int id)
+        {
+            var course = db.Courses.Where(c => c.CourseId == id).SingleOrDefault();
+            if (course == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Searched Data not Found");
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, course);
+            }
+
+        }
+    }
+}
+
+StudentController.cs
+
+using LearnTodayWebApi1.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+
+namespace LearnTodayWebApi1.Controllers
+{
+    public class StudentController : ApiController
+    {
+        LearnTodayWebAPIDbEntities db = new LearnTodayWebAPIDbEntities();
+
+        [HttpGet]
+        public IEnumerable<Course> GetAllCourses()
+        {
+            return db.Courses.ToList();
+
+        }
+        [HttpPost]
+        public HttpResponseMessage PostStudent([FromBody] Student model)
+        {
+
+            try
+            {
+                db.Students.Add(model);
+                db.SaveChanges();
+                return Request.CreateResponse(HttpStatusCode.OK, model);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+
+            }
+
+        }
+        [HttpDelete]
+        public HttpResponseMessage DeleteStudentEnrollment(int id)
+        {
+            var studentEnrollment = db.Students.Where(k => k.StudentId == id).SingleOrDefault();
+            try
+            {
+                if (studentEnrollment != null)
+                {
+                    db.Students.Attach(studentEnrollment);
+                    db.Students.Remove(studentEnrollment);
+                    db.SaveChanges();
+                    return Request.CreateResponse(HttpStatusCode.OK, studentEnrollment);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Enrollment information found");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+
+            }
+
+        }
+    }
+}
+
+TrainerController.cs
+
+using LearnTodayWebApi1.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+
+namespace LearnTodayWebApi1.Controllers
+{
+    public class TrainerController : ApiController
+    {
+        LearnTodayWebAPIDbEntities db = new LearnTodayWebAPIDbEntities();
+
+        [HttpPost]
+        public HttpResponseMessage TrainerSignUp([FromBody] Trainer model)
+        {
+            
+            try
+            {
+                db.Trainers.Add(model);
+                db.SaveChanges();
+                return Request.CreateResponse(HttpStatusCode.OK, model);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+
+            }
+        }
+        [HttpPut]
+        public HttpResponseMessage UpdatePassword(int id, [FromBody] Trainer model)
+        {
+            var passwordGetUsingId = db.Trainers.Where(l => l.TrainerId == id).SingleOrDefault();
+            try
+            {
+                if (passwordGetUsingId != null)
+                {
+                   
+                    db.Trainers.Remove(passwordGetUsingId);
+                    db.Trainers.Add(model);
+                    db.SaveChanges();
+                    return Request.CreateResponse(HttpStatusCode.OK, model);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Searched Data not Found");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+    }
+}
